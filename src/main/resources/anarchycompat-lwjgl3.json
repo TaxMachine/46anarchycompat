@@ -1,0 +1,15 @@
+{
+  "required": false,
+  "minVersion": "0.7.11",
+  "package": "dev.taxmachine.anarchycompat.mixin.lwjgl3",
+  "refmap": "anarchycompat.mixin.refmap.json",
+  "target": "@env(DEFAULT)",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "MixinOptiFineConfigDisplay"
+  ],
+  "client": [
+  ],
+  "server": [
+  ]
+}

@@ -1,0 +1,14 @@
+[
+  {
+    "modid": "anarchycompat",
+    "name": "AnarchyCompat Shims",
+    "description": "LWJGL3 / Java 21 compatibility shims for the 46Anarchy modpack (Beddium companion). Guards Mixin discovery, files reflective grabs, unbreaks menus under the experimental runtime.",
+    "version": "${version}",
+    "mcversion": "${mcversion}",
+    "url": "https://github.com/TaxMachine/46anarchycompat",
+    "authorList": [
+      "TaxMachine"
+    ],
+    "credits": "GTNewHorizons (lwjgl3ify/UniMixins stack), La Collecteuse & Anakoni (FS-Patches toolchain this template mirrors)"
+  }
+]

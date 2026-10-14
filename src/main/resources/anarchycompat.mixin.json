@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "minVersion": "0.7.11",
+  "package": "dev.taxmachine.anarchycompat.mixin",
+  "refmap": "anarchycompat.mixin.refmap.json",
+  "target": "@env(DEFAULT)",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "MixinGuiMainMenu"
+  ],
+  "client": [
+  ],
+  "server": [
+  ]
+}

@@ -1,0 +1,55 @@
+# Release build: publishing a GitHub release runs the full
+# ForgeGradle build and attaches the jar to that release.
+# The 46Anarchy launcher pins per-release asset URLs, so each release
+# must produce `anarchycompat-<version>.jar` (version = tag without `v`).
+name: release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Gradle 4.6 + ForgeGradle 1.2.11 run on Java 8. Unlike Computium,
+      # this shim references no Java 17+ classes (OptiFine + Mixin API
+      # only), so no Java 21 fork is needed.
+      - name: Set up Java 8
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 8
+
+      # Compile-only deps (gitignored by design — see mods/README.md).
+      - name: Fetch compile-only deps
+        run: |
+          mkdir -p mods
+          curl -sSL -o mods/unimixins-all.jar \
+            "https://github.com/LegacyModdingMC/UniMixins/releases/download/0.3.2/%2Bunimixins-all-1.7.10-0.3.2.jar"
+          curl -sSL -o mods/optifine-prod.jar \
+            https://cdn.46anarchy.fr/files/mods/optifine-prod.jar
+          ls -la mods/
+
+      # Deobfuscated Forge workspace (first run downloads MCP mappings
+      # and decompiles — ~10 min, cached per workflow run after that).
+      - name: Setup ForgeGradle workspace
+        run: ./gradlew setupDecompWorkspace --console=plain
+
+      - name: Build
+        run: ./gradlew build --console=plain
+
+      # Attach versioned jar to the release that triggered this run.
+      - name: Upload release asset
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          cp build/libs/anarchycompat.jar "anarchycompat-${VERSION}.jar"
+          sha256sum "anarchycompat-${VERSION}.jar"
+          gh release upload "$GITHUB_REF_NAME" "anarchycompat-${VERSION}.jar" --clobber
+        env:
+          GH_TOKEN: ${{ github.token }}

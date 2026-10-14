@@ -1,0 +1,81 @@
+/** Common code for Forge 1.7.10 builds (adapted from FS-Patches). */
+
+apply plugin: 'forge'
+
+project.version = "0.1.0"
+
+group = project.group
+archivesBaseName = "${project.archives_base}"
+
+minecraft {
+    version = "${project.minecraft_version}-${project.forge_version}"
+    runDir = "run"
+    replace '@VERSION@', project.version
+}
+
+// Forge 1.7.10 runs on Java 6 to 8. The whole toolchain (Gradle 4.6,
+// ForgeGradle 1.2) must itself run ON Java 8 — see README.
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+if(project.enable_mixin.toBoolean()) {
+    apply from: "buildscript/forge-1.7-mixin.gradle"
+}
+
+apply from: "project.gradle"
+
+// Template expansion for mcmod.info (${mcversion}): ForgeGradle exposes
+// the MC version only as project.minecraft.version, not as a project
+// property, so publish it explicitly for `expand project.properties`.
+project.ext.mcversion = project.minecraft_version
+
+dependencies {
+    // Compile against the target pack: drop the full modpack jars plus
+    // unimixins-all.jar into mods/ (never committed, never shipped).
+    // At runtime the launcher provides UniMixins — do NOT embed it.
+    compileOnly fileTree(dir: 'mods', include: ['*.jar'])
+    // Coremod ASM surgery (ShadedMixinGuardTransformer): FML 1.7.10 ships
+    // ASM5 at runtime — compile-only here, never shaded.
+    compileOnly 'org.ow2.asm:asm-debug-all:5.0.3'
+}
+
+jar {
+    from(sourceSets.main.output)
+
+    from {
+        configurations.shade.collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    }
+
+    exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA'
+    exclude 'META-INF/LICENSE', 'META-INF/LICENSE.txt'
+}
+
+processResources {
+    inputs.property "version", version
+    inputs.property "mcversion", project.minecraft.version
+    inputs.properties project.ext.getProperties()
+
+    filesMatching('*.info') {
+        expand project.properties
+    }
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+}
+
+jar {
+    manifest {
+        attributes (
+            // Coremod entry point (IFMLLoadingPlugin stub, safe to keep
+            // even before any transformer is registered).
+            'FMLCorePlugin': 'dev.taxmachine.anarchycompat.coremod.CompatCorePlugin'
+        )
+    }
+}
+
+jar {
+    archiveName = "anarchycompat.jar"
+}
