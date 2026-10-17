@@ -26,15 +26,23 @@ jobs:
           distribution: temurin
           java-version: 8
 
-      # Compile-only deps (gitignored by design — see mods/README.md).
+      # Compile-only deps (gitignored by design — see mods/README.md and
+      # libs/README.md).
       - name: Fetch compile-only deps
         run: |
-          mkdir -p mods
+          mkdir -p mods libs
           curl -sSL -o mods/unimixins-all.jar \
             "https://github.com/LegacyModdingMC/UniMixins/releases/download/0.3.2/%2Bunimixins-all-1.7.10-0.3.2.jar"
           curl -sSL -o mods/optifine-prod.jar \
             https://cdn.46anarchy.fr/files/mods/optifine-prod.jar
-          ls -la mods/
+          # RFB plugin API (compileOnly, api package only) — extracted from
+          # the same lwjgl3ify forgePatches artifact the launcher serves.
+          curl -sSL -o /tmp/lwjgl3ify-forgePatches.jar \
+            "https://nexus.gtnewhorizons.com/repository/public/com/github/GTNewHorizons/lwjgl3ify/3.0.38/lwjgl3ify-3.0.38-forgePatches.jar"
+          mkdir -p /tmp/rfb-api
+          unzip -q /tmp/lwjgl3ify-forgePatches.jar 'com/gtnewhorizons/retrofuturabootstrap/api/*' -d /tmp/rfb-api
+          (cd /tmp/rfb-api && "$JAVA_HOME/bin/jar" cf "$GITHUB_WORKSPACE/libs/rfb-api.jar" .)
+          ls -la mods/ libs/
 
       # Deobfuscated Forge workspace (first run downloads MCP mappings
       # and decompiles — ~10 min, cached per workflow run after that).

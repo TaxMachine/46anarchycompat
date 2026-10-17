@@ -22,16 +22,19 @@ ext.outRefMapFile = "${tasks.compileJava.temporaryDir}/${project.modid}.mixin.re
 jar {
     manifest {
         attributes (
-            // Main config (required, vanilla-safe) + experimental LWJGL3 config
-            // (optional: only applies when its targets exist, e.g. OptiFine's
-            // Config — keeps the classic Java 8 path green without OptiFine).
-            'MixinConfigs': "${project.modid}.mixin.json,${project.modid}-lwjgl3.json",
-            // NOTE: no TweakClass here on purpose. This jar ships NO Mixin
-            // classes (compileOnly) — UniMixins provides MixinTweaker, and
-            // FML picks up our MixinConfigs from every coremod manifest.
-            // Declaring TweakClass would make this jar a (bogus) Mixin
-            // provider candidate in RFB's "Loading tweaker ... from X.jar"
-            // order and confuse tweaker-race triage.
+            // Main config (required, vanilla-safe) + experimental configs
+            // (optional: only apply when their targets exist — keeps the
+            // classic Java 8 path green without PalaMod/Zephyr/OptiFine).
+            'MixinConfigs': "${project.modid}.mixin.json,${project.modid}-lwjgl3.json,${project.modid}-paladium.json,${project.modid}-zephyr.json",
+            // TweakClass marks this jar as a Mixin container so the platform
+            // agent picks up MixinConfigs (without it no
+            // "Selecting anarchycompat-*.json" ever appears — every working
+            // mod in the pack declares this same tweaker). Safe: identical
+            // string already declared by UniMixins/fspatches/PalaMod/etc.,
+            // Launch instantiates the tweaker once by class name, and this
+            // jar ships zero org/spongepowered classes so it cannot win or
+            // corrupt the Mixin service race — UniMixins still hosts Mixin.
+            'TweakClass': 'org.spongepowered.asm.launch.MixinTweaker',
             'TweakOrder': 0,
 
             // If these two are not set, Forge will not detect the mod, it will only run the mixins

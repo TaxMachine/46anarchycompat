@@ -1,0 +1,16 @@
+{
+  "required": false,
+  "minVersion": "0.7.11",
+  "package": "dev.taxmachine.anarchycompat.mixin.zephyr",
+  "refmap": "anarchycompat.mixin.refmap.json",
+  "target": "@env(DEFAULT)",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "MixinZephyrInputProbe",
+    "MixinZephyrVideoFallback"
+  ],
+  "client": [
+  ],
+  "server": [
+  ]
+}

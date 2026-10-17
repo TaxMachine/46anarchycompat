@@ -34,6 +34,13 @@ public class CompatCorePlugin implements IFMLLoadingPlugin {
     static final String OLD_MIXIN_SERVICE =
             "org/spongepowered/asm/service/mojang/MixinServiceLaunchWrapper.class";
 
+    /** Configs re-registered programmatically (PalaMod LoadingPlugin pattern). */
+    static final String[] EARLY_MIXIN_CONFIGS = {
+        "anarchycompat-paladium.json",
+        "anarchycompat-zephyr.json",
+    };
+
+
     private static final String OLD_MIXIN_CAST_MARKER = "java/net/URLClassLoader";
 
     @Override
@@ -56,6 +63,7 @@ public class CompatCorePlugin implements IFMLLoadingPlugin {
     @Override
     public void injectData(Map<String, Object> data) {
         pinTCCLToLaunchLoader();
+        registerEarlyMixinConfigs();
         boolean modernJava = isModernJava();
         List<String> offenders = findShadedMixinServices();
         ClassLoader cl = CompatCorePlugin.class.getClassLoader();
@@ -136,6 +144,38 @@ public class CompatCorePlugin implements IFMLLoadingPlugin {
             }
         } catch (Exception e) {
             FMLLog.warning("[AnarchyCompat] Could not pin TCCL: %s", e);
+        }
+    }
+
+    /**
+     * P1 — programmatic config registration (FS-Patches MixinLoader +
+     * PalaMod LoadingPlugin pattern). The manifest {@code MixinConfigs} +
+     * {@code TweakClass} entry is the primary route; this re-registers the
+     * two phase-sensitive configs reflectively (no hard Mixin linkage, so
+     * no new failure mode where Mixin is absent) so they are queued before
+     * PalaMod's PREINIT injection into {@code Loader} prepares. Runs after
+     * the TCCL pin so {@code MixinBootstrap.init()} resolves launch-side.
+     */
+    static void registerEarlyMixinConfigs() {
+        try {
+            Class.forName("org.spongepowered.asm.launch.MixinBootstrap")
+                    .getMethod("init").invoke(null);
+            java.lang.reflect.Method add = Class
+                    .forName("org.spongepowered.asm.mixin.Mixins")
+                    .getMethod("addConfiguration", String.class);
+            for (String cfg : EARLY_MIXIN_CONFIGS) {
+                try {
+                    add.invoke(null, cfg);
+                    FMLLog.info("[AnarchyCompat] Registered Mixin config %s"
+                            + " programmatically (pre-race backup).", cfg);
+                } catch (Exception e) {
+                    FMLLog.warning("[AnarchyCompat] Could not register Mixin"
+                            + " config %s: %s — manifest entry remains.", cfg, e);
+                }
+            }
+        } catch (Throwable t) {
+            FMLLog.warning("[AnarchyCompat] Programmatic Mixin registration"
+                    + " skipped (%s) — manifest MixinConfigs remains primary.", t);
         }
     }
 

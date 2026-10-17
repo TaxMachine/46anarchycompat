@@ -33,4 +33,12 @@ jar {
     archiveName = "anarchycompat.jar"
 }
 
+dependencies {
+    // RFB plugin API, extracted from lwjgl3ify's forgePatches jar (api
+    // package only). The RFB plugin widens MixinTransformer so PalaMod's
+    // merged Loader handler checkcast survives RFB's dual-loader split.
+    // Compile-only: RFB itself provides these classes at runtime.
+    compileOnly files('libs/rfb-api.jar')
+}
+
 apply from: "buildscript/forge-1.7.gradle"

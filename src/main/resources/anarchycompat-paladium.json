@@ -1,0 +1,19 @@
+{
+  "required": false,
+  "minVersion": "0.7.11",
+  "package": "dev.taxmachine.anarchycompat.mixin.paladium",
+  "refmap": "anarchycompat.mixin.refmap.json",
+  "target": "@env(PREINIT)",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "MixinPalaTripwire",
+    "MixinPalaFinalField",
+    "MixinPalaDisplayProbe",
+    "MixinVoiceMicNormalize",
+    "MixinPalaLoaderNeutralizer"
+  ],
+  "client": [
+  ],
+  "server": [
+  ]
+}
