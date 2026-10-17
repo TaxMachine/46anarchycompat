@@ -27,17 +27,20 @@ jobs:
           java-version: 8
 
       # Compile-only deps (gitignored by design — see mods/README.md and
-      # libs/README.md).
+      # libs/README.md). The three Paladium jars are NOT optional: the Mixin
+      # AP resolves every @Mixin target at compile time (mixin/paladium +
+      # mixin/zephyr reference these classes).
       - name: Fetch compile-only deps
         run: |
           mkdir -p mods libs
-          curl -sSL -o mods/unimixins-all.jar \
+          curl -fsSL -o mods/unimixins-all.jar \
             "https://github.com/LegacyModdingMC/UniMixins/releases/download/0.3.2/%2Bunimixins-all-1.7.10-0.3.2.jar"
-          curl -sSL -o mods/optifine-prod.jar \
-            https://cdn.46anarchy.fr/files/mods/optifine-prod.jar
+          for jar in optifine-prod.jar PalaMod-9.5.0.jar PalaVoiceChat-1.1.0.jar Zephyr-UI-8.5.0.jar; do
+            curl -fsSL -o "mods/$jar" "https://cdn.46anarchy.fr/files/mods/$jar"
+          done
           # RFB plugin API (compileOnly, api package only) — extracted from
           # the same lwjgl3ify forgePatches artifact the launcher serves.
-          curl -sSL -o /tmp/lwjgl3ify-forgePatches.jar \
+          curl -fsSL -o /tmp/lwjgl3ify-forgePatches.jar \
             "https://nexus.gtnewhorizons.com/repository/public/com/github/GTNewHorizons/lwjgl3ify/3.0.38/lwjgl3ify-3.0.38-forgePatches.jar"
           mkdir -p /tmp/rfb-api
           unzip -q /tmp/lwjgl3ify-forgePatches.jar 'com/gtnewhorizons/retrofuturabootstrap/api/*' -d /tmp/rfb-api

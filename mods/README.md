@@ -9,3 +9,8 @@
 # They are `compileOnly` (like FS-Patches): the launcher provides every mod
 # at runtime. This folder exists so `javac` resolves Paladium's closed
 # classes when writing shims against them.
+#
+# CI (release workflow) fetches only the subset the mixins resolve at
+# compile time — the Mixin AP reads every @Mixin target:
+# optifine-prod, PalaMod-9.5.0, PalaVoiceChat-1.1.0, Zephyr-UI-8.5.0
+# (+ unimixins-all).
